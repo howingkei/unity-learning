@@ -4,67 +4,80 @@ using UnityEngine;
 
 public class DiskFactory : MonoBehaviour
 {
-    private int allDiskNum = 0;
-    private List<Disk> used = new List<Disk>();
-    private List<Disk> free = new List<Disk>();
+    public GameObject disk_Prefab;              //飞碟预制
 
-    public Disk getDisk(int level)
+    private List<DiskData> used;                //正被使用的飞碟
+    private List<DiskData> free;                //空闲的飞碟
+
+    public void Start()
     {
-        Disk nowDisk = null;
+        used = new List<DiskData>();
+        free = new List<DiskData>();
+        disk_Prefab = GameObject.Instantiate<GameObject>(Resources.Load<GameObject>("Prefabs/disk"), Vector3.zero, Quaternion.identity);
+        disk_Prefab.SetActive(false);
+    }
+
+    public GameObject GetDisk(int round)
+    {
+        GameObject disk;
+        //如果有空闲的飞碟，则直接使用，否则生成一个新的
         if (free.Count > 0)
         {
-            nowDisk = free[0];
-            nowDisk.reset(level);
-            used.Add(free[0]);
+            disk = free[0].gameObject;
             free.Remove(free[0]);
-
         }
         else
         {
-            allDiskNum++;
-            nowDisk = new Disk(allDiskNum, level);
-            used.Add(nowDisk);
+            disk = GameObject.Instantiate<GameObject>(disk_Prefab, Vector3.zero, Quaternion.identity);
+            disk.AddComponent<DiskData>();
         }
 
-        return nowDisk;
-
-    }
-
-    public void reset()
-    {
-        foreach (Disk temp in used)
+        //按照round来设置飞碟属性
+        //飞碟的等级 = 0~2之间的随机数 * 轮次数
+        //0~4:  红色飞碟  
+        //4~7:  绿色飞碟  
+        //7~10: 蓝色飞碟
+        float level = UnityEngine.Random.Range(0, 2f) * (round + 1);
+        if (level < 4)
         {
-            temp.disk.SetActive(false);
-            free.Add(temp);
+            disk.GetComponent<DiskData>().points = 1;
+            disk.GetComponent<DiskData>().speed = 2.0f;
+            disk.GetComponent<DiskData>().direction = new Vector3(UnityEngine.Random.Range(-1f, 1f) > 0 ? 2 : -2, 1, 0);
+            disk.GetComponent<Renderer>().material.color = Color.red;
         }
-        used.Clear();
-    }
-
-    public int getNowUsedDisk()
-    {
-        return used.Count;
-    }
-
-    public void freeDisk(Disk diskdata)
-    {
-        if (used.Contains(diskdata))
+        else if (level > 7)
         {
-            diskdata.disk.SetActive(false);
-            used.Remove(diskdata);
-            free.Add(diskdata);
+            disk.GetComponent<DiskData>().points = 3;
+            disk.GetComponent<DiskData>().speed = 8.0f;
+            disk.GetComponent<DiskData>().direction = new Vector3(UnityEngine.Random.Range(-1f, 1f) > 0 ? 2 : -2, 1, 0);
+            disk.GetComponent<Renderer>().material.color = Color.blue;
+        }
+        else
+        {
+            disk.GetComponent<DiskData>().points = 2;
+            disk.GetComponent<DiskData>().speed = 4.0f;
+            disk.GetComponent<DiskData>().direction = new Vector3(UnityEngine.Random.Range(-1f, 1f) > 0 ? 2 : -2, 1, 0);
+            disk.GetComponent<Renderer>().material.color = Color.green;
         }
 
+        used.Add(disk.GetComponent<DiskData>());
+
+        return disk;
     }
 
-    public Disk getHitDisk(GameObject disk)
+    public void FreeDisk(GameObject disk)
     {
-        foreach (Disk i in used)
+        //找到使用中的飞碟，将其踢出并加入到空闲队列
+        foreach (DiskData diskData in used)
         {
-            if (i.disk == disk)
+            if (diskData.gameObject.GetInstanceID() == disk.GetInstanceID())
             {
-                return i;
+                disk.SetActive(false);
+                free.Add(diskData);
+                used.Remove(diskData);
+                break;
             }
+
         }
-        return null;
     }
 }

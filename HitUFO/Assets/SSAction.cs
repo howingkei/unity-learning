@@ -10,6 +10,11 @@ public interface ISSActionCallback
         int intParam = 0, string strParam = null, Object objectParam = null);
 }
 
+public interface ISceneController
+{
+    void LoadResources();
+}
+
 public class SSAction : ScriptableObject
 {
     public bool enable = true;

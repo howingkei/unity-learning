@@ -1,19 +1,12 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using baseCode;
 
 public class SSActionManager : MonoBehaviour
 {
     private Dictionary<int, SSAction> actions = new Dictionary<int, SSAction>();
     private List<SSAction> waitingAdd = new List<SSAction>();   // actions need to be run
     private List<int> waitingDelete = new List<int>();   // actions need to be deleted
-
-    public SSActionManager()
-    {
-        roundCtrl = (roundController)Director.getInstance().currentSceneController;
-
-    }
 
     protected void Update()
     {
@@ -46,12 +39,16 @@ public class SSActionManager : MonoBehaviour
     }
 
     /* add action to a gameobject */
-    public void addAction(GameObject gameObject, SSAction action, ISSActionCallback manager)
+    public void RunAction(GameObject gameObject, SSAction action, ISSActionCallback manager)
     {
-        action.gameObject = gameObject;
+        action.gameobject = gameObject;
         action.transform = gameObject.transform;
         action.callback = manager;
         waitingAdd.Add(action);
         action.Start();
+    }
+    protected void Start()
+    {
+
     }
 }
